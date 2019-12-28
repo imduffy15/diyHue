@@ -38,7 +38,7 @@ def discover(bridge_config, new_lights):
                     logging.debug ("tasmota: Hostname: " + device_data["StatusNET"]["Hostname"] )
                     logging.debug ("tasmota: Mac:      " + device_data["StatusNET"]["Mac"] )
 
-                    properties = {"rgb": True, "ct": False, "ip": ip, "name": device_data["StatusNET"]["Hostname"], "id": device_data["StatusNET"]["Mac"], "mac": device_data["StatusNET"]["Mac"]}
+                    properties = {"rgb": True, "ct": True, "ip": ip, "name": device_data["StatusNET"]["Hostname"], "id": device_data["StatusNET"]["Mac"], "mac": device_data["StatusNET"]["Mac"]}
                     device_exist = False
                     for light in bridge_config["lights_address"].keys():
                         if bridge_config["lights_address"][light]["protocol"] == "tasmota" and  bridge_config["lights_address"][light]["id"] == properties["id"]:
@@ -62,6 +62,7 @@ def discover(bridge_config, new_lights):
 
 def set_light(address, light, data):
     logging.debug("tasmota: <set_light> invoked! IP=" + address["ip"])
+    logging.debug("setting light with the following payload:\n" + json.dumps(data, indent=4))
 
     for key, value in data.items():
         #logging.debug("tasmota: key " + key)
@@ -75,7 +76,7 @@ def set_light(address, light, data):
             brightness = int(100.0 * (value / 254.0))
             sendRequest ("http://"+address["ip"]+"/cm?cmnd=Dimmer%20" + str(brightness))
         elif key == "ct":
-            color = {}
+            sendRequest ("http://"+ip+"/cm?cmnd=CT%20" + str(value))
         elif key == "xy":
             color = convert_xy(value[0], value[1], light["state"]["bri"])
             sendRequest ("http://"+address["ip"]+"/cm?cmnd=Color%20" + str(color[0]) + "," + str(color[1]) + "," + str(color[2]))
